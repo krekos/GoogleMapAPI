@@ -8,57 +8,60 @@
 
 namespace Oli\GoogleAPI;
 
+use Nette\Schema\Expect;
+use Nette\Schema\Schema;
 
 /**
  * Description of MapApiExtension
  *
  * @author Petr Olišar <petr.olisar@gmail.com>
  */
-class MapApiExtension extends \Nette\DI\CompilerExtension
-{
+class MapApiExtension extends \Nette\DI\CompilerExtension{
 
-	public $defaults = array(
-	    'key' => null,
-	    'width' => '100%',
-	    'height' => '100%',
-	    'zoom' => 7,
-	    'coordinates' => array(),
-	    'type' => 'ROADMAP',
-	    'scrollable' => true,
-	    'static' => false,
-	    'markers' => array(
-		'bound' => false,
-		'markerClusterer' => false,
-		'iconDefaultPath' => null,
-		'icon' => null,
-		'addMarkers' => array()
-	    )
-	);
-	
-	
-	public function loadConfiguration()
-	{
-		$config = $this->getConfig($this->defaults);
+	public function getConfigSchema():Schema{
+		return Expect::structure([
+			'key' => Expect::string(null)->nullable(),
+			'width' => Expect::string('100%'),
+			'height' => Expect::string('100%'),
+			'zoom' => Expect::int(7),
+			'coordinates' => Expect::array([]),
+			'type' => Expect::string('ROADMAP'),
+			'scrollable' => Expect::bool(true),
+			'static' => Expect::bool(false),
+			'markers' => Expect::structure([
+				'bound' => Expect::bool(false),
+				'markerClusterer' => Expect::bool(false),
+				'iconDefaultPath' => Expect::string(null)->nullable(),
+				'icon' => Expect::string(null)->nullable(),
+				'addMarkers' => Expect::array([]),
+			]),
+		]);
+	}
+
+
+	public function loadConfiguration(){
+		$config = (array)$this->getConfig();
+		$config['markers'] = (array)$config['markers'];
 		$builder = $this->getContainerBuilder();
-		
+
 		$builder->addDefinition($this->prefix('mapAPI'))
-			->setImplement('Oli\GoogleAPI\IMapAPI')
 			->setFactory('Oli\GoogleAPI\MapAPI')
-			->addSetup('setup', array($config))
-			->addSetup('setKey', array($config['key']))
-			->addSetup('setCoordinates', array($config['coordinates']))
-			->addSetup('setType', array($config['type']))
-			->addSetup('isStaticMap', array($config['static']))
-			->addSetup('isScrollable', array($config['scrollable']))
-			->addSetup('setZoom', array($config['zoom']));
-		
+			->setType('Oli\GoogleAPI\IMapAPI')
+			->addSetup('setup', [$config])
+			->addSetup('setKey', [$config['key']])
+			->addSetup('setCoordinates', [$config['coordinates']])
+			->addSetup('setType', [$config['type']])
+			->addSetup('isStaticMap', [$config['static']])
+			->addSetup('isScrollable', [$config['scrollable']])
+			->addSetup('setZoom', [$config['zoom']]);
+
 		$builder->addDefinition($this->prefix('markers'))
-			->setImplement('Oli\GoogleAPI\IMarkers')
+			->setType('Oli\GoogleAPI\IMarkers')
 			->setFactory('Oli\GoogleAPI\Markers')
-			->addSetup('setDefaultIconPath', array($config['markers']['iconDefaultPath']))
-			->addSetup('fitBounds', array($config['markers']['bound']))
-			->addSetup('isMarkerClusterer', array($config['markers']['markerClusterer']))
-			->addSetup('addMarkers', array($config['markers']['addMarkers']));
+			->addSetup('setDefaultIconPath', [$config['markers']['iconDefaultPath']])
+			->addSetup('fitBounds', [$config['markers']['bound']])
+			->addSetup('isMarkerClusterer', [$config['markers']['markerClusterer']])
+			->addSetup('addMarkers', [$config['markers']['addMarkers']]);
 	}
 
 }
