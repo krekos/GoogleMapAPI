@@ -44,9 +44,9 @@ class MapApiExtension extends \Nette\DI\CompilerExtension{
 		$config['markers'] = (array)$config['markers'];
 		$builder = $this->getContainerBuilder();
 
-		$builder->addDefinition($this->prefix('mapAPI'))
-			->setFactory('Oli\GoogleAPI\MapAPI')
-			->setType('Oli\GoogleAPI\IMapAPI')
+		$builder->addFactoryDefinition($this->prefix('mapAPI'))
+			->setImplement('Oli\GoogleAPI\IMapAPI')
+			->getResultDefinition()->setFactory('Oli\GoogleAPI\MapAPI')
 			->addSetup('setup', [$config])
 			->addSetup('setKey', [$config['key']])
 			->addSetup('setCoordinates', [$config['coordinates']])
@@ -55,9 +55,9 @@ class MapApiExtension extends \Nette\DI\CompilerExtension{
 			->addSetup('isScrollable', [$config['scrollable']])
 			->addSetup('setZoom', [$config['zoom']]);
 
-		$builder->addDefinition($this->prefix('markers'))
-			->setType('Oli\GoogleAPI\IMarkers')
-			->setFactory('Oli\GoogleAPI\Markers')
+		$builder->addFactoryDefinition($this->prefix('markers'))
+			->setImplement('Oli\GoogleAPI\IMarkers')
+			->getResultDefinition()->setFactory('Oli\GoogleAPI\Markers')
 			->addSetup('setDefaultIconPath', [$config['markers']['iconDefaultPath']])
 			->addSetup('fitBounds', [$config['markers']['bound']])
 			->addSetup('isMarkerClusterer', [$config['markers']['markerClusterer']])
